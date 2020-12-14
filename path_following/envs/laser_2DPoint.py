@@ -10,7 +10,7 @@ Created on Sat Jul  4 18:45:06 2020
 import numpy as np
 import gym
 from gym import spaces
-from gym_laser2D.envs.envUtils import utils
+from path_following.envs.envUtils import utils
 from gym.envs.classic_control import rendering
 from scipy.spatial import cKDTree
 import cv2

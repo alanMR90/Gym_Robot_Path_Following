@@ -9,8 +9,9 @@ Created on Sat Jul  4 18:45:06 2020
 
 import numpy as np
 import gym
+import cv2
 from gym import spaces
-from gym_laser2D.envs.envUtils import utils
+from path_following.envs.envUtils import utils
 from gym.envs.classic_control import rendering
 from scipy.spatial import cKDTree
 from colorama import Fore, Style
@@ -123,12 +124,12 @@ class Laser2DLine(gym.Env):
             self.viewer.imshow(self.observation)
 
         elif mode == "rgb_array":
-            # render_frame = np.copy(self.worldL)
-            # render_frame[5:self.window_shape[1]+5, 5:self.window_shape[0]+5] = self.observation
-            # cv2.rectangle(render_frame, (0,0), (self.window_shape[1]+10, self.window_shape[0]+10),
-            #               (0,0,0), 5)
-            # return render_frame
-            return self.worldL, self.observation
+            render_frame = np.copy(self.worldL)
+            render_frame[5:self.window_shape[1]+5, 5:self.window_shape[0]+5] = self.observation
+            cv2.rectangle(render_frame, (0,0), (self.window_shape[1]+10, self.window_shape[0]+10),
+                         (0,0,0), 5)
+            return render_frame
+            #return self.worldL, self.observation
 
     def close(self):
         pass

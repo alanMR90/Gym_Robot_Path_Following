@@ -26,7 +26,7 @@ def load_texture(size):
     texture : np.array
         Loaded texture array.
     """
-    textures = glob.glob("textures/*.jpg",
+    textures = glob.glob("/home/alan/Documents/Github/Gym_Robot_Path_Following/path_following/envs/textures/*.jpg",
                          recursive=True)
     texture = cv2.imread(choice(textures))
     texture = cv2.resize(texture, size, cv2.INTER_LINEAR)
