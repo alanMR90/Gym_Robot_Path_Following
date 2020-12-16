@@ -12,6 +12,9 @@ import glob
 import cv2
 import bezier
 from random import uniform, random, choice
+from geomdl import BSpline, utilities
+from geomdl.operations import normal
+from numpy.random import randint
 
 
 def load_texture(size):
@@ -204,3 +207,85 @@ def calculate_reward_line(trajectory, tree, laser_traj, old_points):
     else:
         reward = 0
     return reward, points_in
+
+
+def generate_surface():
+    surf = BSpline.Surface()
+
+    control_points1 = [[0, 0, randint(0, 100)], [0, randint(0, 20), randint(0, 100)], [0, randint(50, 80), randint(0, 100)], [0, 100, randint(0, 100)],
+                       [randint(20, 80), 0, randint(0, 100)], [randint(20, 80), randint(0, 20), randint(0, 100)], [randint(20, 80), randint(50, 80), randint(0, 100)], [randint(20, 80), 100, randint(0, 100)],
+                       [100, 0, randint(0, 100)], [100, randint(0, 20), randint(0, 100)], [100, randint(20, 80), randint(0, 100)], [100, 100, randint(0, 100)]]
+
+    # control_points2 = [[0, 0, 0], [0, 20, 0], [0, 70, 0], [0, 100, 0],
+    #                    [50, 0, 30], [50, 30, 30], [50, 70, 30], [50, 100, 70],
+    #                    [100, 0, 0], [100, 20, 0], [100, 70, 0], [100, 100, 0]]
+
+    # control_points3 = [[0, 0, 0], [0, 20, 0], [0, 70, 0], [0, 100, 0],
+    #                    [50, 0, 100], [50, 30, 30], [50, 70, 30], [50, 100, 80],
+    #                    [100, 0, 0], [100, 20, 0], [100, 70, 0], [100, 100, 0]]
+
+    # control_points4 = [[0, 0, 0], [0, 20, 0], [0, 70, 0], [0, 100, 0],
+    #                    [50, 0, 0], [50, 30, 0], [50, 70, 0], [50, 100, 0],
+    #                    [100, 0, 0], [100, 20, 0], [100, 70, 0], [100, 100, 0]]
+
+    control_points5 = [[0, 0, 0], [0, 50, 0], [0, 50, 0], [0, 100, 0],
+                       [50, 0, 0], [50, 50, 0], [50, 50, 0], [50, 100, 0],
+                       [100, 0, 0], [100, 50, 0], [100, 50, 0], [100, 100, 0]]
+
+    diam = np.random.randint(60, 100)
+    r = diam/2
+    x = 0.05*diam
+    z = 4.*r/3.
+    control_points6 = [[0, 0, 0], [0, 20, 0], [0, 70, 0], [0, 100, 0],
+                       [x, 0, z], [x, 20, z], [x, 70, z], [x, 100, z],
+                       [diam-x, 0, z], [diam-x, 20, z], [diam-x, 70, z], [diam-x, 100, z],
+                       [diam, 0, 0], [diam, 20, 0], [diam, 70, 0], [diam, 100, 0]]
+
+    # control_points_set = [control_points1, control_points2, control_points3, control_points4,
+    #                       control_points5, control_points6]
+    
+    control_points_set = [control_points1]#, control_points5, control_points6]
+    
+    control_points = choice(control_points_set)
+
+    if len(control_points) == 12:
+        surf.degree_u = 2
+        surf.degree_v = 3
+        surf.set_ctrlpts(control_points, 3, 4)
+    elif len(control_points) == 16:
+        surf.degree_u = 3
+        surf.degree_v = 3
+        surf.set_ctrlpts(control_points, 4, 4)
+    surf.knotvector_u = utilities.generate_knot_vector(surf.degree_u, surf.ctrlpts_size_u)
+    surf.knotvector_v = utilities.generate_knot_vector(surf.degree_v, surf.ctrlpts_size_v)
+    return surf
+
+
+def get_norms(surf, timestep_limit):
+    # create a 2D bezier curve
+    curve = BSpline.Curve()
+    curve.degree = 3
+
+    ctrl_points = [[np.random.uniform(0, 0.2), np.random.uniform(0, 0.2)],
+                   [np.random.uniform(0, 0.5), np.random.uniform(0, 0.5)],
+                   [np.random.uniform(0.25, 0.75), np.random.uniform(0.25, 0.75)],
+                   [np.random.uniform(0.5, 0.75), np.random.uniform(0.5, 0.75)],
+                   [np.random.uniform(0.8, 1), np.random.uniform(0.8, 1.0)]]
+
+    curve.set_ctrlpts(ctrl_points)
+    curve.knotvector = utilities.generate_knot_vector(curve.degree, len(curve.ctrlpts))
+    curve.sample_size = timestep_limit
+    curve.evaluate()
+    points_c = curve.evalpts
+    norms = normal(surf, points_c)
+    angles = []  # pitch, yaw
+    traj = []  # x,y,z
+    for i in range(len(norms)):
+        nu = np.array(norms[i][1])
+        yaw = 180.0*np.arctan2(np.abs(nu[1]), np.abs(nu[0]))/np.pi
+        ca = np.linalg.norm(nu[0:2])
+        pitch = 180.0*np.arctan2(nu[2], ca)/np.pi
+        angles.append([pitch, yaw])
+        point = np.array(norms[i][0])
+        traj.append(np.array([point[0], point[1], point[2], pitch, yaw]))
+    return traj, norms, curve
