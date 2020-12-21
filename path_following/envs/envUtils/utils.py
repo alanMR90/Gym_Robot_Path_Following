@@ -196,17 +196,18 @@ def calculate_reward_line(trajectory, tree, laser_traj, old_points):
     laser_traj = np.unique(laser_traj, axis=0)
     laser_traj = laser_traj[:, 0:2]
     distances, index = tree.query(laser_traj, distance_upper_bound=1e-5)
+    dist, idx = tree.query(current_state[0:2])
+    ori_error = abs(trajectory[idx, 2] - current_state[2])
     points_in = (distances == 0).sum()
 
     if points_in > old_points:
         reward = 1
-        dist, idx = tree.query(current_state[0:2])
-        ori_error = abs(trajectory[idx, 2] - current_state[2])
+
         r2 = np.float64(np.power(np.e, -0.12*ori_error))
         reward += r2
     else:
         reward = 0
-    return reward, points_in
+    return reward, points_in, dist, ori_error
 
 
 def generate_surface():

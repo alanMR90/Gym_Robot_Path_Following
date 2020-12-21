@@ -95,7 +95,7 @@ class Laser2DLine(gym.Env):
                                                                 self.laser_diam,
                                                                 self.window_shape)
 
-        reward, self.points_in = utils.calculate_reward_line(self.trajectory, self.KDT,
+        reward, self.points_in, pos_error, ori_error = utils.calculate_reward_line(self.trajectory, self.KDT,
                                                              self.laser_traj, self.points_in)
         dist2Goal = np.linalg.norm(self.goal[0:2]-self.state[0:2])
 
@@ -111,6 +111,8 @@ class Laser2DLine(gym.Env):
         info["world"] = self.worldL
         info["timesteps"] = self.timestep
         info["cReward"] = self.c_reward
+        info["pos_error"] = pos_error
+        info["ori_error"] = ori_error
 
         if done and info["status"] == "goal reached":
             print(Fore.GREEN + "reward: {0:.2f}, timesteps: {1}, status: {2}\
