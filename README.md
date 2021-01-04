@@ -15,6 +15,7 @@ After installation, 3 new gym environments will be registered:
 
 ## Installation
 1.- Clone this repository
+
 2.- On line 32 of *Gym_Robot_Path_Following/path_following/envs/envUtils/utils.py*
 change the path to the corresponding path on your PC. More JPG texture images can be added to this path to have more variety during the training.
 ```bat
